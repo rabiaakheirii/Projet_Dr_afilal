@@ -1,0 +1,1304 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NéoSuite - Médecin & Infirmier</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #2B4F6E;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+    }
+
+    .header {
+      background: #1A3B54;
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: white;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .app-logo {
+      height: 40px;
+      width: 40px;
+      background: #E53935;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: white;
+    }
+
+    .app-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+
+    .header-user {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      background: #2B4F6E;
+      padding: 0.5rem 1.2rem;
+      border-radius: 30px;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .user-dropdown {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+      display: none;
+      min-width: 220px;
+      margin-top: 0.5rem;
+      border: 1px solid #A0B8CC;
+      z-index: 999;
+    }
+
+    .header-user:hover .user-dropdown { display: block; }
+
+    .dropdown-item {
+      padding: 1rem;
+      color: #1A3B54;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .dropdown-item:hover { background: #E8F0F8; }
+    .dropdown-item:first-child { border-radius: 15px 15px 0 0; }
+    .dropdown-item:last-child { border-radius: 0 0 15px 15px; }
+
+    .container {
+      display: flex;
+      min-height: calc(100vh - 72px);
+    }
+
+    .sidebar {
+      width: 280px;
+      background: #E8F0F8;
+      padding: 2rem 0;
+      border-right: 2px solid #A0B8CC;
+      position: sticky;
+      top: 72px;
+      height: calc(100vh - 72px);
+      overflow-y: auto;
+    }
+
+    .sidebar-menu { list-style: none; }
+
+    .sidebar-menu li {
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      color: #1A3B54;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      border-left: 4px solid transparent;
+      margin-bottom: 0.2rem;
+    }
+
+    .sidebar-menu li:hover { background: #D0E0F0; }
+    .sidebar-menu li.active {
+      background: #C0D4E8;
+      border-left: 4px solid #E53935;
+      font-weight: 600;
+    }
+
+    .sidebar-menu li i {
+      width: 24px;
+      color: #E53935;
+      font-size: 1.2rem;
+      text-align: center;
+    }
+
+    .main-content {
+      flex: 1;
+      padding: 2rem;
+      background: #F5F9FF;
+      overflow-y: auto;
+      max-height: calc(100vh - 72px);
+    }
+
+    .content-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .content-header h1 {
+      color: #1A3B54;
+      font-size: 2rem;
+    }
+
+    .date-display {
+      background: white;
+      padding: 0.5rem 1.5rem;
+      border-radius: 30px;
+      color: #2B4F6E;
+      border: 1px solid #A0B8CC;
+      font-weight: 500;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: white;
+      border-radius: 20px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+      border: 1px solid #A0B8CC;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      transition: transform 0.2s;
+      cursor: pointer;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    }
+
+    .stat-icon {
+      width: 70px;
+      height: 70px;
+      background: #E8F0F8;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      color: #E53935;
+      flex-shrink: 0;
+    }
+
+    .stat-info h3 {
+      color: #1A3B54;
+      font-size: 1rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .stat-info p {
+      color: #2B4F6E;
+      font-size: 2rem;
+      font-weight: 700;
+    }
+
+    .section-container {
+      background: white;
+      border-radius: 25px;
+      padding: 2rem;
+      border: 1px solid #A0B8CC;
+      margin-bottom: 2rem;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .section-header h2 {
+      color: #1A3B54;
+      font-size: 1.5rem;
+    }
+
+    .btn-primary, .btn-secondary, .btn-success, .btn-danger {
+      border: none;
+      padding: 0.8rem 1.5rem;
+      border-radius: 30px;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .btn-primary { background: #E53935; color: white; }
+    .btn-primary:hover { background: #C62828; transform: scale(1.02); }
+    .btn-secondary { background: #E8F0F8; color: #1A3B54; border: 1px solid #A0B8CC; }
+    .btn-secondary:hover { background: #D0E0F0; }
+    .btn-success { background: #4CAF50; color: white; }
+    .btn-success:hover { background: #45a049; }
+    .btn-danger { background: #D32F2F; color: white; }
+    .btn-danger:hover { background: #b71c1c; }
+
+    .filters-bar {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .search-input, .filter-select, .form-group input, .form-group select, .form-group textarea {
+      padding: 0.8rem 1rem;
+      border: 2px solid #A0B8CC;
+      border-radius: 30px;
+      font-size: 1rem;
+      width: 100%;
+    }
+
+    .search-input { flex: 1; min-width: 250px; }
+    .filter-select { min-width: 180px; background: white; }
+
+    .search-input:focus,
+    .filter-select:focus,
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #E53935;
+    }
+
+    .table-responsive { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th {
+      text-align: left;
+      padding: 1rem;
+      background: #E8F0F8;
+      color: #1A3B54;
+      font-weight: 600;
+    }
+    td {
+      padding: 1rem;
+      border-bottom: 1px solid #A0B8CC;
+      color: #1A3B54;
+    }
+
+    .status-badge {
+      padding: 0.3rem 1rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      display: inline-block;
+    }
+    .status-badge.success { background: #C8E6C9; color: #2E7D32; }
+    .status-badge.warning { background: #FFF3E0; color: #F57C00; }
+    .status-badge.danger { background: #FFEBEE; color: #D32F2F; }
+    .status-badge.info { background: #E1F5FE; color: #0288D1; }
+
+    .action-btn {
+      background: none;
+      border: none;
+      color: #E53935;
+      cursor: pointer;
+      margin: 0 0.3rem;
+      font-size: 1rem;
+      padding: 0.5rem;
+      border-radius: 50%;
+      transition: all 0.2s;
+    }
+    .action-btn:hover { background: #E8F0F8; }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1rem;
+    }
+
+    .info-card {
+      background: white;
+      border-radius: 20px;
+      padding: 1.5rem;
+      border: 1px solid #A0B8CC;
+      transition: all 0.2s;
+    }
+
+    .info-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    }
+
+    .info-card h3 {
+      color: #1A3B54;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid #E8F0F8;
+    }
+
+    .info-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.5rem 0;
+      gap: 1rem;
+      color: #1A3B54;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 2px solid #E8F0F8;
+      padding-bottom: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .tab {
+      padding: 0.8rem 1.5rem;
+      border-radius: 30px;
+      background: #E8F0F8;
+      color: #1A3B54;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: 500;
+    }
+
+    .tab.active {
+      background: #E53935;
+      color: white;
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .timeline {
+      position: relative;
+      padding-left: 2rem;
+    }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: #E53935;
+    }
+    .timeline-item {
+      position: relative;
+      padding-bottom: 1.5rem;
+    }
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -2.1rem;
+      top: 0;
+      width: 1rem;
+      height: 1rem;
+      border-radius: 50%;
+      background: #E53935;
+      border: 2px solid white;
+    }
+    .timeline-date { font-size: 0.9rem; color: #666; margin-bottom: 0.3rem; }
+    .timeline-title { font-weight: 600; color: #1A3B54; margin-bottom: 0.3rem; }
+    .timeline-content {
+      background: #F5F9FF;
+      padding: 1rem;
+      border-radius: 15px;
+      border: 1px solid #A0B8CC;
+    }
+
+    .role-switch {
+      display: inline-flex;
+      background: #E8F0F8;
+      border-radius: 999px;
+      padding: 0.3rem;
+      gap: 0.3rem;
+    }
+
+    .role-switch button {
+      border: none;
+      padding: 0.6rem 1rem;
+      border-radius: 999px;
+      cursor: pointer;
+      font-weight: 600;
+      background: transparent;
+      color: #1A3B54;
+    }
+
+    .role-switch button.active {
+      background: #E53935;
+      color: white;
+    }
+
+    .welcome-banner {
+      background: linear-gradient(135deg, #E53935, #2B4F6E);
+      color: white;
+      border-radius: 25px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .welcome-banner h2 { margin-bottom: 0.5rem; }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+    .modal.active { display: flex; }
+    .modal-content {
+      background: white;
+      border-radius: 30px;
+      padding: 2rem;
+      width: 90%;
+      max-width: 650px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+    .modal-header h3 { color: #1A3B54; font-size: 1.5rem; }
+    .close-modal {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: #2B4F6E;
+    }
+    .form-group { margin-bottom: 1.2rem; }
+    .form-group label {
+      display: block;
+      color: #1A3B54;
+      font-weight: 500;
+      margin-bottom: 0.3rem;
+      margin-left: 0.5rem;
+    }
+    .modal-footer {
+      display: flex;
+      gap: 1rem;
+      justify-content: flex-end;
+      margin-top: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .empty-box {
+      background: #F5F9FF;
+      border: 1px dashed #A0B8CC;
+      border-radius: 20px;
+      padding: 2rem;
+      text-align: center;
+      color: #2B4F6E;
+    }
+
+    @media (max-width: 1000px) {
+      .container { flex-direction: column; }
+      .sidebar {
+        width: 100%;
+        position: static;
+        height: auto;
+      }
+      .main-content { max-height: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="logo-area">
+      <div class="app-logo"><i class="fas fa-user-md"></i></div>
+      <span class="app-title">NéoSuite Médecin & Infirmier</span>
+    </div>
+    <div class="header-user">
+      <i class="fas fa-user-nurse" id="userIcon"></i>
+      <span id="userName">Dr. Jean Martin</span>
+      <i class="fas fa-chevron-down"></i>
+      <div class="user-dropdown">
+        <div class="dropdown-item" onclick="showSection('profil')"><i class="fas fa-user"></i> Mon profil</div>
+        <div class="dropdown-item" onclick="showSection('parametres')"><i class="fas fa-cog"></i> Paramètres</div>
+        <div class="dropdown-item" onclick="toggleRole('medecin')"><i class="fas fa-user-md"></i> Mode Médecin</div>
+        <div class="dropdown-item" onclick="toggleRole('infirmier')"><i class="fas fa-user-nurse"></i> Mode Infirmier</div>
+        <div class="dropdown-item" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Déconnexion</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <aside class="sidebar">
+      <ul class="sidebar-menu">
+        <li class="active" data-section="accueil" onclick="showSection('accueil', this)">
+          <i class="fas fa-home"></i><span>Accueil</span>
+        </li>
+        <li data-section="patients" onclick="showSection('patients', this)">
+          <i class="fas fa-procedures"></i><span>Patients</span>
+        </li>
+        <li data-section="consultations" onclick="showSection('consultations', this)">
+          <i class="fas fa-stethoscope"></i><span>Consultations</span>
+        </li>
+        <li data-section="prescriptions" onclick="showSection('prescriptions', this)">
+          <i class="fas fa-prescription"></i><span>Prescriptions</span>
+        </li>
+        <li data-section="soins" onclick="showSection('soins', this)">
+          <i class="fas fa-syringe"></i><span>Soins infirmiers</span>
+        </li>
+        <li data-section="observations" onclick="showSection('observations', this)">
+          <i class="fas fa-notes-medical"></i><span>Observations</span>
+        </li>
+        <li data-section="planning" onclick="showSection('planning', this)">
+          <i class="fas fa-calendar-alt"></i><span>Planning</span>
+        </li>
+        <li data-section="stock" onclick="showSection('stock', this)">
+          <i class="fas fa-box-open"></i><span>Stock de soins</span>
+        </li>
+        <li data-section="statistiques" onclick="showSection('statistiques', this)">
+          <i class="fas fa-chart-line"></i><span>Statistiques</span>
+        </li>
+        <li data-section="parametres" onclick="showSection('parametres', this)">
+          <i class="fas fa-cog"></i><span>Paramètres</span>
+        </li>
+      </ul>
+    </aside>
+
+    <main class="main-content" id="mainContent"></main>
+  </div>
+
+  <div class="modal" id="genericModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modalTitle">Titre</h3>
+        <button class="close-modal" onclick="closeModal()">&times;</button>
+      </div>
+      <div id="modalBody"></div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal()">Annuler</button>
+        <button class="btn-primary" id="modalConfirmBtn">Confirmer</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentRole = localStorage.getItem('medicalRole') || 'medecin';
+    let currentSection = 'accueil';
+
+    let patients = JSON.parse(localStorage.getItem('doctorNursePatients')) || [
+      { id: 1, nom: 'Laurent', prenom: 'Emma', age: 28, chambre: '201', diagnostic: 'Bronchiolite', statut: 'Stable', telephone: '06 12 34 56 78' },
+      { id: 2, nom: 'Petit', prenom: 'Lucas', age: 4, chambre: '105', diagnostic: 'Fièvre', statut: 'Observation', telephone: '06 23 45 67 89' },
+      { id: 3, nom: 'Moreau', prenom: 'Chloé', age: 7, chambre: '302', diagnostic: 'Asthme', statut: 'Urgent', telephone: '06 34 56 78 90' }
+    ];
+
+    let consultations = JSON.parse(localStorage.getItem('doctorNurseConsultations')) || [
+      { id: 1, patientId: 1, medecin: 'Dr. Jean Martin', date: '10/03/2026', heure: '09:00', motif: 'Suivi respiratoire', conclusion: 'Amélioration', statut: 'Terminée' },
+      { id: 2, patientId: 2, medecin: 'Dr. Jean Martin', date: '10/03/2026', heure: '10:15', motif: 'Contrôle température', conclusion: 'Surveillance', statut: 'En cours' }
+    ];
+
+    let prescriptions = JSON.parse(localStorage.getItem('doctorNursePrescriptions')) || [
+      { id: 1, patientId: 1, type: 'Médicament', nom: 'Amoxicilline', dosage: '250mg', frequence: '3 fois / jour', prescritPar: 'Dr. Jean Martin', date: '10/03/2026' },
+      { id: 2, patientId: 2, type: 'Examen', nom: 'NFS', dosage: '-', frequence: 'Unique', prescritPar: 'Dr. Jean Martin', date: '10/03/2026' }
+    ];
+
+    let soins = JSON.parse(localStorage.getItem('doctorNurseSoins')) || [
+      { id: 1, patientId: 1, soin: 'Prise de température', heure: '08:00', infirmier: 'Infirmière Sara', statut: 'Réalisé' },
+      { id: 2, patientId: 1, soin: 'Aérosol', heure: '12:00', infirmier: 'Infirmière Sara', statut: 'Prévu' },
+      { id: 3, patientId: 3, soin: 'Surveillance saturation', heure: '11:00', infirmier: 'Infirmier Youssef', statut: 'Urgent' }
+    ];
+
+    let observations = JSON.parse(localStorage.getItem('doctorNurseObservations')) || [
+      { id: 1, patientId: 1, auteur: 'Infirmière Sara', role: 'infirmier', date: '10/03/2026 08:15', texte: 'Patient calme, saturation 96%.' },
+      { id: 2, patientId: 1, auteur: 'Dr. Jean Martin', role: 'medecin', date: '10/03/2026 09:20', texte: 'Poursuite du traitement actuel.' },
+      { id: 3, patientId: 3, auteur: 'Infirmier Youssef', role: 'infirmier', date: '10/03/2026 10:45', texte: 'Dyspnée légère observée.' }
+    ];
+
+    let stock = JSON.parse(localStorage.getItem('doctorNurseStock')) || [
+      { id: 1, article: 'Gants stériles', stock: 120, seuil: 50, unite: 'boîtes' },
+      { id: 2, article: 'Seringues 5ml', stock: 60, seuil: 40, unite: 'paquets' },
+      { id: 3, article: 'Masques pédiatriques', stock: 25, seuil: 30, unite: 'unités' }
+    ];
+
+    let planning = [
+      { heure: '08:00', activite: 'Tour des patients', responsable: 'Équipe matin' },
+      { heure: '10:00', activite: 'Consultations programmées', responsable: 'Dr. Jean Martin' },
+      { heure: '12:00', activite: 'Soins et traitements', responsable: 'Infirmier de garde' },
+      { heure: '15:00', activite: 'Visite médicale', responsable: 'Médecin' }
+    ];
+
+    function saveData() {
+      localStorage.setItem('doctorNursePatients', JSON.stringify(patients));
+      localStorage.setItem('doctorNurseConsultations', JSON.stringify(consultations));
+      localStorage.setItem('doctorNursePrescriptions', JSON.stringify(prescriptions));
+      localStorage.setItem('doctorNurseSoins', JSON.stringify(soins));
+      localStorage.setItem('doctorNurseObservations', JSON.stringify(observations));
+      localStorage.setItem('doctorNurseStock', JSON.stringify(stock));
+      localStorage.setItem('medicalRole', currentRole);
+    }
+
+    function getToday() {
+      return new Date().toLocaleDateString('fr-FR');
+    }
+
+    function updateHeaderUser() {
+      const userName = document.getElementById('userName');
+      const userIcon = document.getElementById('userIcon');
+      if (currentRole === 'medecin') {
+        userName.textContent = 'Dr. Jean Martin';
+        userIcon.className = 'fas fa-user-md';
+      } else {
+        userName.textContent = 'Infirmière Sara';
+        userIcon.className = 'fas fa-user-nurse';
+      }
+    }
+
+    function toggleRole(role) {
+      currentRole = role;
+      saveData();
+      updateHeaderUser();
+      showSection(currentSection);
+    }
+
+    function showSection(section, element = null) {
+      currentSection = section;
+      document.querySelectorAll('.sidebar-menu li').forEach(li => li.classList.remove('active'));
+      const target = element || document.querySelector(`.sidebar-menu li[data-section="${section}"]`);
+      if (target) target.classList.add('active');
+
+      const main = document.getElementById('mainContent');
+      switch(section) {
+        case 'accueil': main.innerHTML = getAccueilHTML(); break;
+        case 'patients': main.innerHTML = getPatientsHTML(); break;
+        case 'consultations': main.innerHTML = getConsultationsHTML(); break;
+        case 'prescriptions': main.innerHTML = getPrescriptionsHTML(); break;
+        case 'soins': main.innerHTML = getSoinsHTML(); break;
+        case 'observations': main.innerHTML = getObservationsHTML(); break;
+        case 'planning': main.innerHTML = getPlanningHTML(); break;
+        case 'stock': main.innerHTML = getStockHTML(); break;
+        case 'statistiques': main.innerHTML = getStatistiquesHTML(); setTimeout(initChart, 100); break;
+        case 'parametres': main.innerHTML = getParametresHTML(); break;
+        case 'profil': main.innerHTML = getProfilHTML(); break;
+        default: main.innerHTML = getAccueilHTML();
+      }
+    }
+
+    function getRoleLabel() {
+      return currentRole === 'medecin' ? 'Médecin' : 'Infirmier';
+    }
+
+    function getRoleSwitchHTML() {
+      return `
+        <div class="role-switch">
+          <button class="${currentRole === 'medecin' ? 'active' : ''}" onclick="toggleRole('medecin')"><i class="fas fa-user-md"></i> Médecin</button>
+          <button class="${currentRole === 'infirmier' ? 'active' : ''}" onclick="toggleRole('infirmier')"><i class="fas fa-user-nurse"></i> Infirmier</button>
+        </div>
+      `;
+    }
+
+    function getAccueilHTML() {
+      const urgents = patients.filter(p => p.statut === 'Urgent').length;
+      const soinsPrevus = soins.filter(s => s.statut === 'Prévu' || s.statut === 'Urgent').length;
+      return `
+        <div class="content-header">
+          <h1><i class="fas fa-home"></i> Accueil ${getRoleLabel()}</h1>
+          <div style="display:flex; gap:1rem; align-items:center; flex-wrap:wrap;">${getRoleSwitchHTML()}<div class="date-display">${getToday()}</div></div>
+        </div>
+
+        <div class="welcome-banner">
+          <h2>${currentRole === 'medecin' ? 'Bonjour Docteur' : 'Bonjour Infirmier(ère)'}</h2>
+          <p>Interface unifiée NéoSuite avec le même thème que Admin, Pharmacie et Laboratoire.</p>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card" onclick="showSection('patients')">
+            <div class="stat-icon"><i class="fas fa-procedures"></i></div>
+            <div class="stat-info"><h3>Patients</h3><p>${patients.length}</p></div>
+          </div>
+          <div class="stat-card" onclick="showSection('consultations')">
+            <div class="stat-icon"><i class="fas fa-stethoscope"></i></div>
+            <div class="stat-info"><h3>Consultations</h3><p>${consultations.length}</p></div>
+          </div>
+          <div class="stat-card" onclick="showSection('soins')">
+            <div class="stat-icon"><i class="fas fa-syringe"></i></div>
+            <div class="stat-info"><h3>Soins prévus</h3><p>${soinsPrevus}</p></div>
+          </div>
+          <div class="stat-card" onclick="showSection('patients')">
+            <div class="stat-icon"><i class="fas fa-triangle-exclamation"></i></div>
+            <div class="stat-info"><h3>Urgences</h3><p style="color:#D32F2F;">${urgents}</p></div>
+          </div>
+        </div>
+
+        <div class="cards-grid">
+          <div class="info-card">
+            <h3><i class="fas fa-user-injured"></i> Patients prioritaires</h3>
+            ${patients.slice(0,3).map(p => `
+              <div class="info-item"><span>${p.prenom} ${p.nom}</span><span><span class="status-badge ${p.statut === 'Urgent' ? 'danger' : p.statut === 'Observation' ? 'warning' : 'success'}">${p.statut}</span></span></div>
+            `).join('')}
+          </div>
+          <div class="info-card">
+            <h3><i class="fas fa-clock"></i> Planning rapide</h3>
+            ${planning.slice(0,4).map(a => `
+              <div class="info-item"><span>${a.heure}</span><span>${a.activite}</span></div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function getPatientsHTML() {
+      return `
+        <div class="content-header">
+          <h1><i class="fas fa-procedures"></i> Patients</h1>
+          <div class="date-display">${getToday()}</div>
+        </div>
+
+        <div class="section-container">
+          <div class="section-header">
+            <h2>Liste des patients</h2>
+            <button class="btn-primary" onclick="openAddPatientModal()"><i class="fas fa-plus"></i> Nouveau patient</button>
+          </div>
+          <div class="filters-bar">
+            <input type="text" class="search-input" id="searchPatient" placeholder="Rechercher patient..." onkeyup="filterPatients()">
+          </div>
+          <div class="table-responsive">
+            <table id="patientsTable">
+              <thead>
+                <tr><th>Nom</th><th>Âge</th><th>Chambre</th><th>Diagnostic</th><th>Statut</th><th>Téléphone</th><th>Actions</th></tr>
+              </thead>
+              <tbody>
+                ${patients.map(p => `
+                  <tr>
+                    <td><strong>${p.prenom} ${p.nom}</strong></td>
+                    <td>${p.age} ans</td>
+                    <td>${p.chambre}</td>
+                    <td>${p.diagnostic}</td>
+                    <td><span class="status-badge ${p.statut === 'Urgent' ? 'danger' : p.statut === 'Observation' ? 'warning' : 'success'}">${p.statut}</span></td>
+                    <td>${p.telephone}</td>
+                    <td>
+                      <button class="action-btn" onclick="viewPatient(${p.id})" title="Voir"><i class="fas fa-eye"></i></button>
+                      <button class="action-btn" onclick="deletePatient(${p.id})" title="Supprimer"><i class="fas fa-trash"></i></button>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    function getConsultationsHTML() {
+      const canEdit = currentRole === 'medecin';
+      return `
+        <div class="content-header">
+          <h1><i class="fas fa-stethoscope"></i> Consultations</h1>
+          <div class="date-display">${getToday()}</div>
+        </div>
+        <div class="section-container">
+          <div class="section-header">
+            <h2>Consultations médicales</h2>
+            ${canEdit ? `<button class="btn-primary" onclick="openAddConsultationModal()"><i class="fas fa-plus"></i> Nouvelle consultation</button>` : `<span class="status-badge info">Lecture seule pour infirmier</span>`}
+          </div>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr><th>Patient</th><th>Médecin</th><th>Date</th><th>Heure</th><th>Motif</th><th>Conclusion</th><th>Statut</th></tr>
+              </thead>
+              <tbody>
+                ${consultations.map(c => {
+                  const p = patients.find(x => x.id === c.patientId);
+                  return `
+                    <tr>
+                      <td>${p ? p.prenom + ' ' + p.nom : '-'}</td>
+                      <td>${c.medecin}</td>
+                      <td>${c.date}</td>
+                      <td>${c.heure}</td>
+                      <td>${c.motif}</td>
+                      <td>${c.conclusion}</td>
+                      <td><span class="status-badge ${c.statut === 'Terminée' ? 'success' : 'warning'}">${c.statut}</span></td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    function getPrescriptionsHTML() {
+      const canEdit = currentRole === 'medecin';
+      return `
+        <div class="content-header">
+          <h1><i class="fas fa-prescription"></i> Prescriptions</h1>
+          <div class="date-display">${getToday()}</div>
+        </div>
+        <div class="section-container">
+          <div class="section-header">
+            <h2>Ordonnances et examens</h2>
+            ${canEdit ? `<button class="btn-primary" onclick="openAddPrescriptionModal()"><i class="fas fa-plus"></i> Nouvelle prescription</button>` : `<span class="status-badge warning">Création réservée au médecin</span>`}
+          </div>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr><th>Patient</th><th>Type</th><th>Nom</th><th>Dosage</th><th>Fréquence</th><th>Prescripteur</th><th>Date</th></tr>
+              </thead>
+              <tbody>
+                ${prescriptions.map(pr => {
+                  const p = patients.find(x => x.id === pr.patientId);
+                  return `
+                    <tr>
+                      <td>${p ? p.prenom + ' ' + p.nom : '-'}</td>
+                      <td>${pr.type}</td>
+                      <td>${pr.nom}</td>
+                      <td>${pr.dosage}</td>
+                      <td>${pr.frequence}</td>
+                      <td>${pr.prescritPar}</td>
+                      <td>${pr.date}</td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    function getSoinsHTML() {
+      const canEdit = currentRole === 'infirmier' || currentRole === 'medecin';
+      return `
+        <div class="content-header">
+          <h1><i class="fas fa-syringe"></i> Soins infirmiers</h1>
+          <div class="date-display">${getToday()}</div>
+        </div>
+        <div class="section-container">
+          <div class="section-header">
+            <h2>Suivi des soins</h2>
+            ${canEdit ? `<button class="btn-primary" onclick="openAddSoinModal()"><i class="fas fa-plus"></i> Ajouter un soin</button>` : ''}
+          </div>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr><th>Patient</th><th>Soin</th><th>Heure</th><th>Infirmier</th><th>Statut</th><th>Actions</th></tr>
+              </thead>
+              <tbody>
+                ${soins.map(s => {
+                  const p = patients.find(x => x.id === s.patientId);
+                  return `
+                    <tr>
+                      <td>${p ? p.prenom + ' ' + p.nom : '-'}</td>
+                      <td>${s.soin}</td>
+                      <td>${s.heure}</td>
+                      <td>${s.infirmier}</td>
+                      <td><span class="status-badge ${s.statut === 'Réalisé' ? 'success' : s.statut === 'Urgent' ? 'danger' : 'warning'}">${s.statut}</span></td>
+                      <td>
+                        <button class="action-btn" onclick="markSoinDone(${s.id})" title="Valider"><i class="fas fa-check"></i></button>
+                      </td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    function getObservationsHTML() {
+      return `
+        <div class="content-header">
+          <h1><i class="fas fa-notes-medical"></i> Observations</h1>
+          <div class="date-display">${getToday()}</div>
+        </div>
+        <div class="section-container">
+          <div class="section-header">
+            <h2>Historique clinique</h2>
+            <button class="btn-primary" onclick="openAddObservationModal()"><i class="fas fa-plus"></i> Ajouter</button>
+          </div>
+          <div class="timeline">
+            ${observations.map(o => {
+              const p = patients.find(x => x.id === o.patientId);
+              return `
+                <div class="timeline-item">
+                  <div class="timeline-date">${o.date}</div>
+                  <div class="timeline-title">${p ? p.prenom + ' ' + p.nom : '-'} - ${o.auteur}</div>
+                  <div class="timeline-content">${o.texte}</div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function getPlanningHTML() {
+      return `
+        <div class="content-header">
+          <h1><i class="fas fa-calendar-alt"></i> Planning</h1>
+          <div class="date-display">${getToday()}</div>
+        </div>
+        <div class="cards-grid">
+          ${planning.map(p => `
+            <div class="info-card">
+              <h3>${p.heure}</h3>
+              <div class="info-item"><span>Activité</span><span>${p.activite}</span></div>
+              <div class="info-item"><span>Responsable</span><span>${p.responsable}</span></div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    function getStockHTML() {
+      const canEdit = currentRole === 'medecin';
+      return `
+        <div class="content-header">
+          <h1><i class="fas fa-box-open"></i> Stock de soins</h1>
+          <div class="date-display">${getToday()}</div>
+        </div>
+        <div class="section-container">
+          <div class="section-header">
+            <h2>Matériel et consommables</h2>
+            ${canEdit ? `<button class="btn-primary" onclick="openAddStockModal()"><i class="fas fa-plus"></i> Ajouter article</button>` : `<span class="status-badge info">Modification réservée au médecin</span>`}
+          </div>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr><th>Article</th><th>Stock</th><th>Seuil</th><th>Unité</th><th>Statut</th></tr>
+              </thead>
+              <tbody>
+                ${stock.map(a => {
+                  const state = a.stock <= a.seuil ? 'danger' : a.stock <= a.seuil * 2 ? 'warning' : 'success';
+                  const label = a.stock <= a.seuil ? 'Critique' : a.stock <= a.seuil * 2 ? 'Faible' : 'Correct';
+                  return `
+                    <tr>
+                      <td><strong>${a.article}</strong></td>
+                      <td>${a.stock}</td>
+                      <td>${a.seuil}</td>
+                      <td>${a.unite}</td>
+                      <td><span class="status-badge ${state}">${label}</span></td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    function getStatistiquesHTML() {
+      const urgents = patients.filter(p => p.statut === 'Urgent').length;
+      const termines = soins.filter(s => s.statut === 'Réalisé').length;
+      return `
+        <div class="content-header">
+          <h1><i class="fas fa-chart-line"></i> Statistiques</h1>
+          <div class="date-display">${getToday()}</div>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-card"><div class="stat-icon"><i class="fas fa-user-injured"></i></div><div class="stat-info"><h3>Patients</h3><p>${patients.length}</p></div></div>
+          <div class="stat-card"><div class="stat-icon"><i class="fas fa-stethoscope"></i></div><div class="stat-info"><h3>Consultations</h3><p>${consultations.length}</p></div></div>
+          <div class="stat-card"><div class="stat-icon"><i class="fas fa-check-circle"></i></div><div class="stat-info"><h3>Soins réalisés</h3><p>${termines}</p></div></div>
+          <div class="stat-card"><div class="stat-icon"><i class="fas fa-triangle-exclamation"></i></div><div class="stat-info"><h3>Urgences</h3><p>${urgents}</p></div></div>
+        </div>
+        <div class="section-container">
+          <h2 style="color:#1A3B54; margin-bottom:1rem;">Activité</h2>
+          <canvas id="statsChart" height="120"></canvas>
+        </div>
+      `;
+    }
+
+    function getParametresHTML() {
+      return `
+        <div class="content-header">
+          <h1><i class="fas fa-cog"></i> Paramètres</h1>
+          <div class="date-display">${getToday()}</div>
+        </div>
+        <div class="section-container">
+          <div class="info-item"><span>Module</span><span>Médecin & Infirmier</span></div>
+          <div class="info-item"><span>Thème</span><span>NéoSuite unifié</span></div>
+          <div class="info-item"><span>Mode actuel</span><span>${getRoleLabel()}</span></div>
+        </div>
+      `;
+    }
+
+    function getProfilHTML() {
+      return `
+        <div class="content-header">
+          <h1><i class="fas fa-user"></i> Mon profil</h1>
+          <div class="date-display">${getToday()}</div>
+        </div>
+        <div class="section-container">
+          <div style="text-align:center;">
+            <div style="width:100px;height:100px;border-radius:50%;background:#E53935;margin:0 auto;display:flex;align-items:center;justify-content:center;">
+              <i class="fas ${currentRole === 'medecin' ? 'fa-user-md' : 'fa-user-nurse'}" style="font-size:3rem;color:white;"></i>
+            </div>
+            <h2 style="margin-top:1rem; color:#1A3B54;">${currentRole === 'medecin' ? 'Dr. Jean Martin' : 'Infirmière Sara'}</h2>
+            <p style="color:#2B4F6E;">${getRoleLabel()}</p>
+          </div>
+        </div>
+      `;
+    }
+
+    function initChart() {
+      const ctx = document.getElementById('statsChart')?.getContext('2d');
+      if (!ctx) return;
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven'],
+          datasets: [
+            {
+              label: 'Consultations',
+              data: [4, 6, 5, 7, 6],
+              borderColor: '#E53935',
+              backgroundColor: 'rgba(229,57,53,0.12)',
+              fill: true,
+              tension: 0.4
+            },
+            {
+              label: 'Soins',
+              data: [8, 10, 9, 11, 12],
+              borderColor: '#2B4F6E',
+              backgroundColor: 'rgba(43,79,110,0.08)',
+              fill: true,
+              tension: 0.4
+            }
+          ]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+      });
+    }
+
+    function filterPatients() {
+      const search = document.getElementById('searchPatient')?.value.toLowerCase() || '';
+      const rows = document.querySelectorAll('#patientsTable tbody tr');
+      rows.forEach(row => {
+        row.style.display = row.textContent.toLowerCase().includes(search) ? '' : 'none';
+      });
+    }
+
+    function viewPatient(id) {
+      const p = patients.find(x => x.id === id);
+      if (!p) return;
+      openModal('Détail patient', `
+        <div class="info-item"><span>Nom</span><span>${p.prenom} ${p.nom}</span></div>
+        <div class="info-item"><span>Âge</span><span>${p.age} ans</span></div>
+        <div class="info-item"><span>Chambre</span><span>${p.chambre}</span></div>
+        <div class="info-item"><span>Diagnostic</span><span>${p.diagnostic}</span></div>
+        <div class="info-item"><span>Statut</span><span>${p.statut}</span></div>
+        <div class="info-item"><span>Téléphone</span><span>${p.telephone}</span></div>
+      `, closeModal, 'Fermer');
+    }
+
+    function deletePatient(id) {
+      if (!confirm('Supprimer ce patient ?')) return;
+      patients = patients.filter(p => p.id !== id);
+      saveData();
+      showSection('patients');
+      alert('✅ Patient supprimé');
+    }
+
+    function markSoinDone(id) {
+      const item = soins.find(s => s.id === id);
+      if (!item) return;
+      item.statut = 'Réalisé';
+      saveData();
+      showSection('soins');
+      alert('✅ Soin marqué comme réalisé');
+    }
+
+    function openModal(title, body, confirmHandler, confirmText = 'Confirmer') {
+      document.getElementById('modalTitle').textContent = title;
+      document.getElementById('modalBody').innerHTML = body;
+      const btn = document.getElementById('modalConfirmBtn');
+      btn.textContent = confirmText;
+      btn.onclick = confirmHandler;
+      document.getElementById('genericModal').classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('genericModal').classList.remove('active');
+    }
+
+    function openAddPatientModal() {
+      openModal('Nouveau patient', `
+        <div class="form-group"><label>Nom</label><input id="pNom"></div>
+        <div class="form-group"><label>Prénom</label><input id="pPrenom"></div>
+        <div class="form-group"><label>Âge</label><input id="pAge" type="number"></div>
+        <div class="form-group"><label>Chambre</label><input id="pChambre"></div>
+        <div class="form-group"><label>Diagnostic</label><input id="pDiagnostic"></div>
+        <div class="form-group"><label>Statut</label><select id="pStatut"><option>Stable</option><option>Observation</option><option>Urgent</option></select></div>
+        <div class="form-group"><label>Téléphone</label><input id="pTelephone"></div>
+      `, addPatient);
+    }
+
+    function addPatient() {
+      patients.push({
+        id: Date.now(),
+        nom: document.getElementById('pNom').value,
+        prenom: document.getElementById('pPrenom').value,
+        age: parseInt(document.getElementById('pAge').value || '0'),
+        chambre: document.getElementById('pChambre').value,
+        diagnostic: document.getElementById('pDiagnostic').value,
+        statut: document.getElementById('pStatut').value,
+        telephone: document.getElementById('pTelephone').value
+      });
+      saveData();
+      closeModal();
+      showSection('patients');
+    }
+
+    function openAddConsultationModal() {
+      if (currentRole !== 'medecin') return;
+      openModal('Nouvelle consultation', `
+        <div class="form-group"><label>Patient</label><select id="cPatient">${patients.map(p => `<option value="${p.id}">${p.prenom} ${p.nom}</option>`).join('')}</select></div>
+        <div class="form-group"><label>Heure</label><input id="cHeure" type="time"></div>
+        <div class="form-group"><label>Motif</label><input id="cMotif"></div>
+        <div class="form-group"><label>Conclusion</label><textarea id="cConclusion"></textarea></div>
+      `, addConsultation);
+    }
+
+    function addConsultation() {
+      consultations.push({
+        id: Date.now(),
+        patientId: parseInt(document.getElementById('cPatient').value),
+        medecin: 'Dr. Jean Martin',
+        date: getToday(),
+        heure: document.getElementById('cHeure').value,
+        motif: document.getElementById('cMotif').value,
+        conclusion: document.getElementById('cConclusion').value,
+        statut: 'En cours'
+      });
+      saveData();
+      closeModal();
+      showSection('consultations');
+    }
+
+    function openAddPrescriptionModal() {
+      if (currentRole !== 'medecin') return;
+      openModal('Nouvelle prescription', `
+        <div class="form-group"><label>Patient</label><select id="prPatient">${patients.map(p => `<option value="${p.id}">${p.prenom} ${p.nom}</option>`).join('')}</select></div>
+        <div class="form-group"><label>Type</label><select id="prType"><option>Médicament</option><option>Examen</option><option>Consommable</option></select></div>
+        <div class="form-group"><label>Nom</label><input id="prNom"></div>
+        <div class="form-group"><label>Dosage</label><input id="prDosage"></div>
+        <div class="form-group"><label>Fréquence</label><input id="prFreq"></div>
+      `, addPrescription);
+    }
+
+    function addPrescription() {
+      prescriptions.push({
+        id: Date.now(),
+        patientId: parseInt(document.getElementById('prPatient').value),
+        type: document.getElementById('prType').value,
+        nom: document.getElementById('prNom').value,
+        dosage: document.getElementById('prDosage').value,
+        frequence: document.getElementById('prFreq').value,
+        prescritPar: 'Dr. Jean Martin',
+        date: getToday()
+      });
+      saveData();
+      closeModal();
+      showSection('prescriptions');
+    }
+
+    function openAddSoinModal() {
+      openModal('Nouveau soin', `
+        <div class="form-group"><label>Patient</label><select id="sPatient">${patients.map(p => `<option value="${p.id}">${p.prenom} ${p.nom}</option>`).join('')}</select></div>
+        <div class="form-group"><label>Soin</label><input id="sNom"></div>
+        <div class="form-group"><label>Heure</label><input id="sHeure" type="time"></div>
+        <div class="form-group"><label>Statut</label><select id="sStatut"><option>Prévu</option><option>Réalisé</option><option>Urgent</option></select></div>
+      `, addSoin);
+    }
+
+    function addSoin() {
+      soins.push({
+        id: Date.now(),
+        patientId: parseInt(document.getElementById('sPatient').value),
+        soin: document.getElementById('sNom').value,
+        heure: document.getElementById('sHeure').value,
+        infirmier: currentRole === 'infirmier' ? 'Infirmière Sara' : 'Ajout médecin',
+        statut: document.getElementById('sStatut').value
+      });
+      saveData();
+      closeModal();
+      showSection('soins');
+    }
+
+    function openAddObservationModal() {
+      openModal('Nouvelle observation', `
+        <div class="form-group"><label>Patient</label><select id="oPatient">${patients.map(p => `<option value="${p.id}">${p.prenom} ${p.nom}</option>`).join('')}</select></div>
+        <div class="form-group"><label>Observation</label><textarea id="oTexte" rows="4"></textarea></div>
+      `, addObservation);
+    }
+
+    function addObservation() {
+      observations.unshift({
+        id: Date.now(),
+        patientId: parseInt(document.getElementById('oPatient').value),
+        auteur: currentRole === 'medecin' ? 'Dr. Jean Martin' : 'Infirmière Sara',
+        role: currentRole,
+        date: `${getToday()} ${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`,
+        texte: document.getElementById('oTexte').value
+      });
+      saveData();
+      closeModal();
+      showSection('observations');
+    }
+
+    function openAddStockModal() {
+      if (currentRole !== 'medecin') return;
+      openModal('Ajouter article de stock', `
+        <div class="form-group"><label>Article</label><input id="stArticle"></div>
+        <div class="form-group"><label>Stock</label><input id="stStock" type="number"></div>
+        <div class="form-group"><label>Seuil</label><input id="stSeuil" type="number"></div>
+        <div class="form-group"><label>Unité</label><input id="stUnite"></div>
+      `, addStock);
+    }
+
+    function addStock() {
+      stock.push({
+        id: Date.now(),
+        article: document.getElementById('stArticle').value,
+        stock: parseInt(document.getElementById('stStock').value || '0'),
+        seuil: parseInt(document.getElementById('stSeuil').value || '0'),
+        unite: document.getElementById('stUnite').value
+      });
+      saveData();
+      closeModal();
+      showSection('stock');
+    }
+
+    function logout() {
+      alert('Déconnexion réussie');
+    }
+
+    updateHeaderUser();
+    showSection('accueil');
+  </script>
+</body>
+</html>
